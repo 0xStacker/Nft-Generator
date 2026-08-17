@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="4af8a9b9-68ba-4733-bf0a-6864d4f68b8f" name="Changes" comment="initial commit">
+      <change afterPath="$PROJECT_DIR$/.idea/Nft-Generator.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie10.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie11.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie12.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie13.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie13_.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie14.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie15.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie16.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie17.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie18.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie19.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie20.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie5.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie6.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie7.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie8.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/hoodie9.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/jacket1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/jacket2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/jacket3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/jacket4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hood_rogues/hoodie/jacket5.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/traits_config.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8,
+  "fromUser": false
+}]]></component>
+  <component name="ProjectId" id="3I2GUBLtAMeNlf9yCUxVbfs9aGQ" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Git.Working.Tree.Tab.closed.by.user": "closed",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.generator.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "C:/Users/chine/PycharmProjects/Nft-Generator/mouth_accessory",
+    "node.js.detected.package.jshint": "true",
+    "node.js.selected.package.jshint": "",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "vcs.Git"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\chine\PycharmProjects\Nft-Generator\mouth_accessory" />
+      <recent name="C:\Users\chine\PycharmProjects\Nft-Generator\hoodie" />
+      <recent name="C:\Users\chine\PycharmProjects\Nft-Generator\headwear" />
+      <recent name="C:\Users\chine\PycharmProjects\Nft-Generator\head" />
+      <recent name="C:\Users\chine\PycharmProjects\Nft-Generator\facewear" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\chine\PycharmProjects\Nft-Generator\hood_rogues" />
+      <recent name="C:\Users\chine\PycharmProjects\Nft-Generator" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-821f704e66d9-5bd6d13a2a75-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-262.9437.214" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4af8a9b9-68ba-4733-bf0a-6864d4f68b8f" name="Changes" comment="" />
+      <created>1786955263404</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1786955263404</updated>
+    </task>
+    <task id="LOCAL-00001" summary="initial commit">
+      <option name="closed" value="true" />
+      <created>1786967649694</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1786967649694</updated>
+    </task>
+    <task id="LOCAL-00002" summary="initial commit">
+      <option name="closed" value="true" />
+      <created>1786967918535</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1786967918535</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="User">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="*" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="false" />
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="initial commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="initial commit" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>8</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
