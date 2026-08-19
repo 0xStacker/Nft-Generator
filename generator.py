@@ -12,26 +12,33 @@ from colorama import Fore, Style
 class BadLayerConfig(Exception):
     def __init__(self, message):
         self.message = message
-        super.__init__(self.message)
+        super().__init__(self.message)
 
 
 # Generate the trait config file from given directory. If directory is not provided, default directory "/traits"
 #  is used instead.
 def build_trait_config(dir_):
-    if Path("./traits_config.json").exists():
+    if Path("./trait_config.json").exists():
         decision = input("Do you want to use existing trait config file? (y/n)")
         if decision == "y":
             return
         else:
             print("A new trait config file will be created")
 
+    name = input("Set project name \n")
+    description = input("Set project description \n")
+
     data = {}
+    traits = {}
+
+
     # Identify traits
     dir_ = Path(f"./{dir_}/")
     traits_category = [i.name for i in dir_.iterdir() if i.is_dir()]
     traits_order = {traits_category.index(i): i for i in traits_category}
     print(f"Found {len(traits_category)} folders, Edit layer order")
 
+    # List out layer order in terminal
     count = 1
     for i in traits_category:
         print(Fore.CYAN,f"{count}. {i}")
@@ -42,26 +49,30 @@ def build_trait_config(dir_):
     order = order.strip()
     order = order.split(",")
 
-    # Layer ordering
+    # Re-order layer to match user preference
     traits_category = [traits_order[int(i) - 1] for i in order]
-    # reset counter
+    # reset counter for reuse
     count = 1
+
     for i in traits_category:
         print(Style.RESET_ALL, "New layer order")
         print(Fore.CYAN, f"{count}. {i}")
         count += 1
 
     for trait in list(traits_category):
-        data[trait] = {}
+        traits[trait] = {}
         path = Path(f"./{dir_}/{trait}")
         items = [i.name for i in path.iterdir() if i.is_file()]
         for item in items:
-            data[trait][item] = 0
+            traits[trait][item] = 0
 
-    with open("traits_config.json", "w") as file:
+    # Construct config skeleton
+    data["project"] = {"name": name, "description": description}
+    data["traits"] = traits
+    # Write config data
+    with open("trait_config.json", "w") as file:
         json.dump(data, file, indent=4)
-
-    print(Fore.CYAN,"Trait config built, Edit traits_config.json to set rarity details")
+    print(Fore.CYAN,"Trait config built, Edit trait_config.json to set rarity details")
 
 
 def generate_image(trait_config, size, quantity, dir_):
@@ -70,13 +81,28 @@ def generate_image(trait_config, size, quantity, dir_):
     # count completed image generations
     generated = 0
     traits = json.load(trait_config)
+    images = Path("./out/images")
+    metadata = Path("./out/metadata")
+    images.mkdir(parents=True, exist_ok=True)
+    metadata.mkdir(parents=True, exist_ok=True)
 
-    # Continous image generation until given amount is reached
+    # Continuous image generation until given amount is reached
     while generated != quantity:
+        image_meta = open(metadata/f"{generated}.json", "w")
+        data = {}
+
+        skeleton = {"name": f"{traits["project"]["name"]} #{generated}",
+            "description": f"{traits['project']['description']}",
+            "image": f"{generated}.png",
+            "edition": 1,
+            "attributes": []
+        }
+
+        data.update(skeleton)
         # blank canvas of same size as project
         image_construct = Image.new("RGBA", size)
         selected_traits = []
-        for trait in traits:
+        for trait in traits["traits"]:
             if dir_:
                 path = f"./{dir_}/{trait}"
             else:
@@ -88,8 +114,15 @@ def generate_image(trait_config, size, quantity, dir_):
             items = [i.name for i in path_obj.iterdir() if i.is_file()]
 
             # Assign weights as given in config file
-            weights = [traits[trait][i] for i in items]
+            weights = [traits["traits"][trait][i] for i in items]
             selected = choices(items, k=1, weights=weights)
+
+            # Add traits to metadata
+            data["attributes"].append({
+                "trait_type": trait,
+                "value": selected[0]
+            })
+
             im = Image.open(f"{path}/{selected[0]}")
             selected_traits.append(selected)
             image_construct.alpha_composite(im)
@@ -101,23 +134,27 @@ def generate_image(trait_config, size, quantity, dir_):
         else:
             generated_images.append(signature)
 
-        image_construct.save(f"{generated}.png")
+        # Write image and metadata
+        image_construct.save(f"./out/images/{generated}.png")
+        json.dump(data, image_meta, indent=4)
+
         print(Fore.GREEN, f"Saved Image {generated}.png")
         generated += 1
+    print(Fore.LIGHTYELLOW_EX,f"Generated {generated} images, saved to ./generated")
 
 
 # def get_canvas_size(img):
 #     return img.size
 
-traits_dir = input("Enter traits directory >> ") or "traits"
-quantity_ = int(input ("Enter quantity to generate >> ") or 10)
-canvas = input("Enter canvas to generate >> ")
+traits_dir = input("Enter traits directory \n") or "traits"
+quantity_ = int(input ("Enter quantity to generate\n") or 10)
+canvas = input("Enter canvas to generate e.g 512x512 \n")
 canvas = int(canvas.split("x")[0]), int(canvas.split("x")[1])
 
 generated_images = []
 
 build_trait_config(traits_dir)
 
-with open("traits_config.json", "r") as config_file:
+with open("trait_config.json", "r") as config_file:
     generate_image(config_file, canvas, quantity_, traits_dir)
 
