@@ -1,8 +1,12 @@
+from dataclasses import field
+
 from PIL import Image
 from random import choices
 import json
 from pathlib import Path
 from colorama import Fore, Style
+import csv
+
 
 """
 * Construct trait config, users can edit weights for unique trait in the config file
@@ -83,10 +87,16 @@ def generate_image(trait_config, size, quantity, dir_):
     traits = json.load(trait_config)
     images = Path("./out/images")
     metadata = Path("./out/metadata")
+
+
     images.mkdir(parents=True, exist_ok=True)
     metadata.mkdir(parents=True, exist_ok=True)
 
     # Can we generate {quantity} unique images from n traits
+    attributes = [f"attributes[{i}]" for i in list(traits["traits"].keys())]
+    fields = ["tokenID", "name", "description", "filename"]
+    fields.extend(attributes)
+    data = {}
     possible_generations = 1
     for i in traits["traits"]:
         possible_generations *= len(traits["traits"][i])
@@ -94,14 +104,14 @@ def generate_image(trait_config, size, quantity, dir_):
     if possible_generations < quantity:
         raise AmountExceedsLimit("Amount of generation required has exceeded the total amount of possible combinations")
 
-    # Build composite, create metadata
-    while len(generated_images) != quantity:
-        with open(metadata/f"{len(generated_images) + 1}.json", "w") as image_meta:
-            data = {}
-            skeleton = {"name": f"{traits["project"]["name"]} #{len(generated_images)}",
+    with open(metadata/f"{len(generated_images) + 1}.csv", "a", newline="") as image_meta:
+        writer = csv.DictWriter(image_meta, fieldnames=fields)
+        writer.writeheader()
+        while len(generated_images) != quantity:
+            skeleton = {"tokenID": len(generated_images), "name": f"{traits["project"]["name"]} #{len(generated_images)}",
                 "description": f"{traits['project']['description']}",
-                "image": f"{len(generated_images)}.png",
-                "edition": 1,
+                "filename": f"{len(generated_images)}.png",
+                "attributes[background]": 1,
                 "attributes": []
             }
 
@@ -131,7 +141,7 @@ def generate_image(trait_config, size, quantity, dir_):
                 im = Image.open(f"{path}/{selected[0]}")
                 selected_traits.append(selected[0])
                 image_construct.alpha_composite(im)
-            signature = tuple(selected_traits)
+        signature = tuple(selected_traits)
 
 
             # Prevent Image collision
@@ -141,7 +151,7 @@ def generate_image(trait_config, size, quantity, dir_):
                 generated_images.add(signature)
 
             # Write image and metadata
-            image_construct.save(f"./out/images/{len(generated_images)}.png")
+            image_construct.save(f"./out/images/{trait['project']['name']} #{len(generated_images)}.png")
             json.dump(data, image_meta, indent=4)
 
             print(Fore.GREEN, f"Saved Image {len(generated_images)}.png")
