@@ -60,8 +60,8 @@ Each folder represents a trait category, and each image represents a possible tr
 Clone the repository and install dependencies:
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone https://github.com/0xStacker/Nft-Generator
+cd Nft-generator
 pip install pillow colorama
 ```
 
