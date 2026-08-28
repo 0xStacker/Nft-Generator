@@ -1,4 +1,3 @@
-
 from PIL import Image
 from random import choices
 import json
