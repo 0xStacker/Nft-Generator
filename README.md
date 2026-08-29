@@ -322,7 +322,6 @@ This project is still under development.
 - [ ] JSON metadata support
 - [ ] Trait compatibility / exclusion rules
 - [ ] Better output management
-- [ ] Generation progress display
 - [ ] Seeded generation
 - [ ] Automated rarity analysis
 - [ ] Unit tests
@@ -345,7 +344,7 @@ MIT License
 
 ## 💡 Why I Built This
 
-Cause all the tools i found online were paid. 
+Cause all the tools i found online were paid and expensive. 
 
 ## ⭐ If You Find This Useful
 
