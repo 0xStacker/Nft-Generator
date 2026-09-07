@@ -1,9 +1,7 @@
-# NFT Generator
 
-A lightweight, configurable Python tool for generating unique layered artwork from trait folders.
+A lightweight, configurable Python tool for generating unique layered NFT artwork from trait folders.
 
-Built with **Python + Pillow**, this generator automates the process of combining image layers into NFT collections while giving creators control over trait rarity, layer order, collection size, metadata, and output.
-
+Built with **Python + Pillow**. Configure trait weights, layer order, subtraits, and compatibility rules from `trait_config.json`.
 
 > **Status:** Early-stage / actively improving
 
@@ -11,12 +9,12 @@ Built with **Python + Pillow**, this generator automates the process of combinin
 
 - 🖼️ Layered image generation
 - 🎲 Weighted trait selection
+- 🧩 Subtrait support
+- 🚫 Trait compatibility / exclusion rules
 - ♻️ Duplicate prevention
 - 📊 Rarity reporting
-- 📝 CSV metadata generation(Opensea format)
-- ⚙️ Automatic trait configuration
-- 📁 Automatic output directories
-- 🧩 Configurable layer order
+- 📝 OpenSea-style CSV metadata
+- ⚙️ Automatic configuration and output directories
 
 ## 📦 Requirements
 
@@ -24,115 +22,57 @@ Built with **Python + Pillow**, this generator automates the process of combinin
 - Pillow
 - Colorama
 
-Install dependencies:
-
 ```bash
 pip install pillow colorama
 ```
 
 ## 📂 Project Structure
 
-Organize each collection using trait categories as folders (check the Bots folder for example):
+Each top-level folder is a **trait category**. Images inside it are the available traits.
 
 ```text
 my-collection/
 ├── Background/
 │   ├── Blue.png
-│   ├── Red.png
-│   └── Green.png
+│   └── Red.png
 ├── Body/
 │   ├── Human.png
 │   └── Robot.png
-├── Eyes/
-│   ├── Normal.png
-│   ├── Laser.png
-│   └── Angry.png
-└── Head/
-    ├── Cap.png
-    ├── Crown.png
-    └── None.png
+├── Head/
+│   ├── Cap.png
+│   └── Crown.png
+└── Clothes/
+    ├── Hoodie/
+    │   ├── Hood_Up.png
+    │   └── Hood_Down.png
+    └── Shirt.png
 ```
 
-Each folder represents a trait category, and each image represents a possible trait.
+Subfolders are **subtraits**. They let related traits share a parent category while still being selected individually.
 
-## 🚀 Getting Started
-
-Clone the repository and install dependencies:
+## 🚀 Usage
 
 ```bash
 git clone https://github.com/0xStacker/Nft-Generator
 cd Nft-generator
 pip install pillow colorama
-```
-
-Run the generator:
-
-```bash
 python generator.py
 ```
 
-The generator will display available project directories and ask you to select one.
+The generator will:
+1. Let you select a project.
+2. Ask for collection size and canvas dimensions.
+3. Create `trait_config.json` if one doesn't exist.
+4. Let you configure layer order.
+5. Generate the collection.
 
-You will then specify the collection size and canvas dimensions.
+## ⚙️ Configuration
 
-Example:
+`trait_config.json` controls project information, trait weights, and rules.
 
-```text
-Enter quantity to generate
-333
+### Trait weights
 
-Enter canvas to generate e.g 512x512
-1024x1024
-```
-
-## ⚙️ Trait Configuration
-
-On the first run, the generator discovers the trait folders and creates a `trait_config.json` file.
-
-You can also choose the order in which layers are composited.
-
-Example:
-
-```text
-Found 4 folders, Edit layer order
-
-1. Background
-2. Body
-3. Eyes
-4. Head
-
-Enter the order in which the image should be layered using their numbers.
-e.g, 1, 3, 4, 2
-```
-
-A generated configuration looks like:
-
-```json
-{
-    "project": {
-        "name": "My Collection",
-        "description": "A collection of generated characters."
-    },
-    "traits": {
-        "Background": {
-            "Blue.png": 1,
-            "Red.png": 1
-        },
-        "Body": {
-            "Robot.png": 1,
-            "Human.png": 1
-        },
-        "Eyes": {
-            "Normal.png": 1,
-            "Laser.png": 1
-        }
-    }
-}
-```
-
-## 🎲 Trait Rarity
-
-Trait weights can be edited directly in `trait_config.json`.
+Higher weights make a trait more likely to be selected:
 
 ```json
 "Eyes": {
@@ -142,210 +82,106 @@ Trait weights can be edited directly in `trait_config.json`.
 }
 ```
 
-Higher weights make traits more likely to be selected.
+### Trait rules
 
-## ♻️ Duplicate Prevention
+Rules are defined at the **trait-category level**.
 
-Each generated NFT receives a signature based on its selected trait combination.
-
-For example:
-
-```text
-Background: Blue.png
-Body: Robot.png
-Eyes: Laser.png
-Head: Cap.png
+```json
+"rules": {
+    "Hoodie": ["Helmet", "Suit"],
+    "Helmet": ["Hoodie"]
+}
 ```
 
-Previously generated combinations are stored and checked before an image is saved. This prevents duplicate trait combinations from entering the collection.
+This means `Hoodie` cannot be generated with `Helmet` or `Suit`.
+
+A subtrait still belongs to its parent category. For example:
+
+```text
+Clothes/
+└── Hoodie/
+    ├── Hood_Up.png
+    └── Hood_Down.png
+```
+
+Both `Hood_Up` and `Hood_Down` are treated as the `Clothes/Hoodie` category for rule checking. This lets you write rules once for the category instead of creating exclusions for every individual subtrait.
+
+## 🧠 How Generation Works
+
+For each NFT, the generator:
+
+1. Selects one trait from every category using the configured weights.
+2. Checks the selected combination against the configured rules.
+3. Rejects conflicting combinations and tries again.
+4. Composites the valid layers in the configured order.
+5. Checks the trait combination for duplicates.
+6. Saves the image and metadata.
+7. Updates the rarity report.
+
+In short:
+
+```text
+Select → Validate Rules → Composite → Check Duplicate → Save
+             │
+             └── Conflict → Select again
+```
 
 ## 🔢 Combination Limit
 
-Before generation begins, the generator calculates the theoretical number of possible combinations.
+Before generation, the generator calculates the theoretical number of combinations. If the requested supply exceeds that number, generation stops.
 
 For example:
 
 ```text
-Background = 5
-Body       = 4
-Eyes       = 6
-Head       = 3
-```
-
-Total:
-
-```text
-5 × 4 × 6 × 3 = 360
-```
-
-If the requested collection size exceeds the total number of possible combinations, generation stops before attempting to create the collection.
-
-## 🖼️ Image Generation
-
-For every NFT, the generator:
-
-1. Creates a blank RGBA canvas.
-2. Selects a trait from every category.
-3. Applies the configured weights.
-4. Composites the selected layers.
-5. Creates a unique trait signature.
-6. Checks for duplicates.
-7. Saves the image.
-8. Records metadata.
-9. Updates the rarity distribution.
-
-Generated images are saved to:
-
-```text
-<project>/out/images/
-```
-
-## 📝 Metadata
-
-The generator creates an opensea-ready CSV metadata file containing:
-
-- Token ID
-- Name
-- Description
-- Filename
-- Selected trait for each category
-
-Example:
-
-```csv
-tokenID,name,description,filename,attributes[Background],attributes[Body],attributes[Eyes]
-1,My Collection #1,A collection of generated characters.,1.png,Blue,Robot,Laser
-```
-
-## 📊 Rarity Report
-
-After generation, the generator creates:
-
-```text
-rarity_report.txt
-```
-
-The report records how many times each trait was selected.
-
-Example:
-
-```text
-Background:
-============
-Blue.png: 72
-Red.png: 28
-
-Eyes:
-============
-Normal.png: 81
-Laser.png: 12
-Angry.png: 7
-```
-
-## 🛠️ How It Works
-
-```text
-Trait folders
-      │
-      ▼
-Discover traits
-      │
-      ▼
-Build configuration
-      │
-      ▼
-Configure weights
-      │
-      ▼
-Calculate combinations
-      │
-      ▼
-Select weighted traits
-      │
-      ▼
-Composite layers
-      │
-      ▼
-Check duplicates
-      │
-      ├── Duplicate → Generate again
-      │
-      └── Unique
-            │
-            ▼
-        Save image
-            │
-            ▼
-       Save metadata
-            │
-            ▼
-       Update rarity
+5 Backgrounds × 4 Bodies × 6 Eyes × 3 Heads = 360 combinations
 ```
 
 ## 📁 Output
 
-After generation:
-
 ```text
 my-collection/
-├── Background/
-├── Body/
-├── Eyes/
-├── Head/
 ├── trait_config.json
 ├── rarity_report.txt
 └── out/
     ├── images/
     │   ├── 1.png
-    │   ├── 2.png
     │   └── ...
     └── metadata/
         └── metadata.csv
 ```
 
+`metadata.csv` contains token ID, name, description, filename, and selected traits.
+
+`rarity_report.txt` records how often each trait was selected.
+
 ## ⚠️ Current Limitations
 
-This project is still under development.
-
-- Input validation is limited.
-- The interface is currently terminal-based.
-- Metadata is currently generated as CSV.
-- Existing output handling is basic.
-- Trait compatibility rules are not currently supported.
-- More advanced collection configuration is still being developed.
+- Terminal-based interface
+- Limited input validation
+- CSV metadata only
+- Output handling is basic
+- Generation currently relies on random retry for invalid combinations
 
 ## 🗺️ Roadmap
 
-- [ ] Better CLI interface
-- [ ] Stronger input validation
-- [ ] Cleaner project configuration
-- [ ] JSON metadata support
-- [ ] Trait compatibility / exclusion rules
-- [ ] Better output management
+- [ ] Better CLI and input validation
+- [ ] JSON metadata
 - [ ] Seeded generation
 - [ ] Automated rarity analysis
 - [ ] Unit tests
-- [ ] Installable Python package
-- [ ] Command-line arguments
-- [ ] Improved error handling
-- [ ] Documentation and examples
+- [ ] Installable package
+- [ ] Better output management
 
 ## 🤝 Contributing
 
-Contributions, ideas, and improvements are welcome.
-
-If you find a bug or have an idea for improving the generator, feel free to open an issue or submit a pull request.
+Ideas, bug reports, and pull requests are welcome.
 
 ## 📜 License
 
-```text
 MIT License
-```
 
 ## 💡 Why I Built This
 
-Cause all the tools i found online were paid and expensive. 
+Most NFT generators I found were paid or unnecessarily expensive. This one is built to be simple, configurable, and free to experiment with.
 
-## ⭐ If You Find This Useful
-
-Give the repository a star ⭐ and feel free to experiment with it, improve it, or build on top of it.
+⭐ If you find it useful, consider starring the repository.
