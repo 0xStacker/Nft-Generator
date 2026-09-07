@@ -23,36 +23,44 @@ class BadLayerConfig(Exception):
 
 
 class File:
-    def __init__(self, dir_, name, weight, parent_trait):
+    def __init__(self, dir_, name, weight, parent_tree):
         self.file = dir_
         self.name = name
         self.weight = weight
-        self.parent_trait = parent_trait
+        self.parent_trait = parent_tree[-1]
+        self.origin_trait = parent_tree[0]
 
 
 class Trait:
     def __init__(self, name, dir_, config):
         if not dir_.exists():
-            raise BadLayerConfig(f"Trait {name} is declared in config but no such trait exists within project")
+            raise BadLayerConfig(
+                f"Trait {name} is declared in config but no such trait exists within project"
+            )
         self.name = name
         self.path = Path(dir_)
         # file => weight
         # files held in the trait's root folder
-        self.items = [File(self.path / i, i, config["traits"][self.name][i], self.name) for i in config["traits"][self.name] if i != "subTraits"]
+        self.items = [File(self.path / i, i, config["traits"][self.name][i], [self.name])
+                      for i in config["traits"][self.name] if i != "subTraits"]
         # category => file => weight
-
         if "subTraits" in config["traits"][self.name]:
             sub_traits = config["traits"][self.name]["subTraits"]
             self.sub_items = []
             for sub in sub_traits:
-                for file in sub:
-                    self.sub_items.append(File(self.path / sub / file, file, sub[file], sub))
+                for file in sub_traits[sub]:
+                    self.sub_items.append(
+                        File(self.path / sub / file, file, sub_traits[sub][file], [self.name, sub]
+                             ))
             # Add subitems to total items
             self.items.extend(self.sub_items)
 
+        if self.name in config["rules"]:
+            self.rules = config["rules"][self.name]
     def choose(self):
         weights = [i.weight for i in self.items]
-        result = choices(self.items, k=1, weights=weights)[0]
+        result = choices(self.items, k=1, weights=weights)
+        result = result[0]
         return result
 
 
@@ -71,8 +79,6 @@ def build_config(project):
     
     data = {}
     traits = {}
-
-
     # Identify individual traits folders and subtrait folders (only immediate subfolders considered)
     dir_ = root / project
     traits_category = [i.name for i in dir_.iterdir() if i.is_dir() and i.name != "out"]
@@ -98,11 +104,13 @@ def build_config(project):
     print(Style.RESET_ALL,"Enter the order in which the image should be layered using their numbers. e.g, 1, 3, 4, 2")
 
     order = input(">> ")
-    order = order.strip()
-    order = order.split(",")
 
-    # Re-order layer to match user preference
-    traits_category = [traits_order[int(i) - 1] for i in order]
+
+    if order:
+        order = order.strip()
+        order = order.split(",")
+        # Re-order layer to match user preference
+        traits_category = [traits_order[int(i) - 1] for i in order]
     # reset counter for reuse
     count = 1
     
@@ -113,6 +121,8 @@ def build_config(project):
             print(subtraits[i])
         count += 1
 
+    rules = {i: [] for i in traits_category}
+
     # Set default rarity config
     for trait in traits_category:
         path = root / dir_ / trait
@@ -120,22 +130,42 @@ def build_config(project):
         traits[trait] = {}
         for item in items:
             traits[trait][item] = 1
-        # set default rarity for sub traits as well if exists
+
+        # set default rarity for sub traits as well if exist
         if subtraits[trait]:
+            traits[trait]["subTraits"] = {}
             for s in subtraits[trait]:
+                rules[s] = []
                 sub_items = [j.name for j in (path / s).iterdir() if j.is_file()]
                 traits[trait]["subTraits"][s] = {i: 1 for i in sub_items}
 
     # Construct config skeleton
     data["project"] = {"name": name, "description": description}
     data["traits"] = traits
+    data["rules"] = rules
     # Write config data
     with open(f"./{dir_}/trait_config.json", "w") as file:
         json.dump(data, file, indent=4)
-    print(Fore.CYAN,"Trait config built, Edit trait_config.json to set rarity details")
+    print(Fore.CYAN,"Trait config built, Edit trait_config.json to set rarity details and trait rules")
     input(f"Click enter to begin image generation")
 
 
+# Validates whether combination does not include traits which have been defined to
+# be mutually exclusive to current trait
+def is_valid(combination, rules):
+    copy = combination[:]
+    for i in combination:
+        if i.parent_trait in rules:
+            del copy[combination.index(i)]
+            for j in copy:
+                if j.parent_trait in rules[i.parent_trait]:
+
+                    return False
+        copy = combination[:]
+    return True
+
+
+# Prepare output directories
 def create_out(dir_):
     images = Path(f"./{dir_}/out/images")
     metadata = Path(f"./{dir_}/out/metadata")
@@ -144,7 +174,7 @@ def create_out(dir_):
     metadata.mkdir(parents=True, exist_ok=True)
     return images, metadata
 
-
+# Checks whether quantity amount of items is within range of possible generations of n traits
 def can_generate(traits, quantity):
     possible_generations = 1
     for i in traits["traits"]:
@@ -161,7 +191,7 @@ def select_layers(layers, size, meta):
     image = Image.new("RGBA", size)
     selected = [i.choose() for i in layers]
     for i in selected:
-        meta[f"attributes[{i.parent_trait}]"] = i.name[: -4]
+        meta[f"attributes[{i.origin_trait}]"] = i.name[: -4]
         # layer selected trait on top
         im = Image.open(i.file)
         image.alpha_composite(im)
@@ -175,6 +205,7 @@ def generate_image(trait_config, size, quantity, dir_):
     # trait_category -> trait_type -> amount
     distribution = {}
     traits = json.load(trait_config)
+    rules = traits["rules"]
     token_id = 1
     
     # Can we generate {quantity} unique images from n traits
@@ -209,20 +240,28 @@ def generate_image(trait_config, size, quantity, dir_):
                 "description": f"{traits['project']['description']}",
                 "filename": f"{token_id}.png"}
 
+            # construct image and check layer validity
             selected_layers, image, meta = select_layers(layers, size, data)
+            if not is_valid(selected_layers, rules):
+                print(Fore.RED, "Found conflict")
+                print(Style.RESET_ALL, [k.name for k in selected_layers])
+                continue
+
             # Prevent Image collision
             signature = (i.name for i in selected_layers)
-
             if signature in generated_images:
                 continue
             generated_images.add(signature)
-                
             # update trait distributions
             for i in selected_layers:
-                if i.name not in distribution[i.parent_trait]:
+                if i.parent_trait not in distribution:
+                    distribution[i.parent_trait] = {}
+                    distribution[i.parent_trait][i.name] = 1
+                elif i.name not in distribution[i.parent_trait]:
                     distribution[i.parent_trait][i.name] = 1
                 else:
                     distribution[i.parent_trait][i.name] += 1
+
                        
             # Write image and metadata
             image.save(f"./{images}/{token_id}.png")

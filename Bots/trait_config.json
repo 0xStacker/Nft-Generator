@@ -1,38 +1,46 @@
 {
     "project": {
         "name": "Bots",
-        "description": "1000 bots on ronbinhood"
+        "description": "bots on hood"
     },
     "traits": {
         "background": {
             "bg1.png": 1,
-            "bg4.png": 1,
             "bg2.png": 1,
             "bg3.png": 1,
+            "bg4.png": 1,
             "bg5.png": 1,
-            "bg6.png": 1
+            "bg6.png": 1,
+            "subTraits": {
+                "background_type2": {
+                    "bg2_sub.png": 1,
+                    "bg2_sub_2.png": 1,
+                    "bg2_sub_3.png": 1,
+                    "bg2_sub_4.png": 1
+                }
+            }
         },
         "body": {
-            "body3.png": 1,
             "body1.png": 1,
-            "boy4.png": 1,
             "body10.png": 1,
-            "body6.png": 1,
-            "body14.png": 1,
-            "body8.png": 1,
-            "body12.png": 1,
-            "body2.png": 1,
-            "body5.png": 1,
-            "body9.png": 1,
             "body11.png": 1,
+            "body12.png": 1,
+            "body13.png": 1,
+            "body14.png": 1,
+            "body2.png": 1,
+            "body3.png": 1,
+            "body5.png": 1,
+            "body6.png": 1,
             "body7.png": 1,
-            "body13.png": 1
+            "body8.png": 1,
+            "body9.png": 1,
+            "boy4.png": 1
         },
         "screen": {
             "screen1.png": 1,
+            "screen2.png": 1,
             "screen3.png": 1,
             "screen4.png": 1,
-            "screen2.png": 1,
             "screen5.png": 1
         },
         "eyes": {
@@ -42,5 +50,12 @@
             "eyes_type_4.png": 1,
             "eyes_type_5.png": 1
         }
+    },
+    "rules": {
+        "background": [],
+        "body": [],
+        "screen": [],
+        "eyes": [],
+        "background_type2": ["body"]
     }
 }

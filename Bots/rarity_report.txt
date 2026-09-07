@@ -1,0 +1,35 @@
+background
+============
+bg3.png: 3
+bg2.png: 6
+bg4.png: 3
+bg6.png: 3
+bg1.png: 3
+bg5.png: 2
+body
+============
+body5.png: 1
+body3.png: 2
+body12.png: 1
+body13.png: 2
+body10.png: 5
+body9.png: 2
+body6.png: 2
+body1.png: 1
+body8.png: 2
+body7.png: 1
+body2.png: 1
+screen
+============
+screen3.png: 9
+screen2.png: 2
+screen4.png: 5
+screen1.png: 1
+screen5.png: 3
+eyes
+============
+eyes_type_4.png: 4
+eyes_type_5.png: 6
+eyes_type_2.png: 6
+eyes_type_3.png: 1
+eyes_type_1.png: 3
