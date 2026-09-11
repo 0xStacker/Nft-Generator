@@ -1,7 +1,7 @@
 {
     "project": {
         "name": "Bots",
-        "description": "bots on hood"
+        "description": "Bots on hood"
     },
     "traits": {
         "background": {
@@ -52,10 +52,25 @@
         }
     },
     "rules": {
-        "background": [],
-        "body": [],
-        "screen": [],
-        "eyes": [],
-        "background_type2": ["body"]
+        "background": {
+            "allowNone": false,
+            "excludes": ["body"]
+        },
+        "body": {
+            "allowNone": true,
+            "excludes": []
+        },
+        "screen": {
+            "allowNone": false,
+            "excludes": []
+        },
+        "eyes": {
+            "allowNone": false,
+            "excludes": []
+        },
+        "background_type2": {
+            "allowNone": false,
+            "excludes": []
+        }
     }
 }

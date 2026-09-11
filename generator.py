@@ -21,6 +21,10 @@ class BadLayerConfig(Exception):
         self.message = message
         super().__init__(self.message)
 
+class InvalidRuleSetError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
 
 class File:
     def __init__(self, dir_, name, weight, parent_tree):
@@ -39,27 +43,32 @@ class Trait:
             )
         self.name = name
         self.path = Path(dir_)
+        self.sub_traits = []
         # file => weight
         # files held in the trait's root folder
         self.items = [File(self.path / i, i, config["traits"][self.name][i], [self.name])
                       for i in config["traits"][self.name] if i != "subTraits"]
         # category => file => weight
         if "subTraits" in config["traits"][self.name]:
-            sub_traits = config["traits"][self.name]["subTraits"]
+            sub_categories = config["traits"][self.name]["subTraits"]
             self.sub_items = []
-            for sub in sub_traits:
-                for file in sub_traits[sub]:
+            for sub in sub_categories:
+                self.sub_traits.append(sub)
+                for file in sub_categories[sub]:
                     self.sub_items.append(
-                        File(self.path / sub / file, file, sub_traits[sub][file], [self.name, sub]
+                        File(self.path / sub / file, file, sub_categories[sub][file], [self.name, sub]
                              ))
             # Add subitems to total items
             self.items.extend(self.sub_items)
 
         if self.name in config["rules"]:
             self.rules = config["rules"][self.name]
-    def choose(self):
-        weights = [i.weight for i in self.items]
-        result = choices(self.items, k=1, weights=weights)
+
+    # Select randomly from current trait exclude an array of subtraits if required
+    def choose(self, from_=None):
+        pool = [i for i in self.items if i.parent_trait in from_] if from_ else self.items
+        weights = [i.weight for i in self.items if i.parent_trait in from_] if from_ else [i.weight for i in self.items]
+        result = choices(pool, k=1, weights=weights)
         result = result[0]
         return result
 
@@ -121,7 +130,7 @@ def build_config(project):
             print(subtraits[i])
         count += 1
 
-    rules = {i: [] for i in traits_category}
+    rules_ = {i: {"allowNone": False, "excludes": []} for i in traits_category}
 
     # Set default rarity config
     for trait in traits_category:
@@ -135,34 +144,19 @@ def build_config(project):
         if subtraits[trait]:
             traits[trait]["subTraits"] = {}
             for s in subtraits[trait]:
-                rules[s] = []
+                rules_[s] = {"allowNone": False, "excludes": []}
                 sub_items = [j.name for j in (path / s).iterdir() if j.is_file()]
                 traits[trait]["subTraits"][s] = {i: 1 for i in sub_items}
 
     # Construct config skeleton
     data["project"] = {"name": name, "description": description}
     data["traits"] = traits
-    data["rules"] = rules
+    data["rules"] = rules_
     # Write config data
     with open(f"./{dir_}/trait_config.json", "w") as file:
         json.dump(data, file, indent=4)
     print(Fore.CYAN,"Trait config built, Edit trait_config.json to set rarity details and trait rules")
     input(f"Click enter to begin image generation")
-
-
-# Validates whether combination does not include traits which have been defined to
-# be mutually exclusive to current trait
-def is_valid(combination, rules):
-    copy = combination[:]
-    for i in combination:
-        if i.parent_trait in rules:
-            del copy[combination.index(i)]
-            for j in copy:
-                if j.parent_trait in rules[i.parent_trait]:
-
-                    return False
-        copy = combination[:]
-    return True
 
 
 # Prepare output directories
@@ -185,11 +179,54 @@ def can_generate(traits, quantity):
     else:
         return True
 
+# If you are excluding something that is not allowed to be none then your rule is faulty
+def validate_rules():
+    invalid_set = []
+    for i in rules:
+        for j in rules[i]["excludes"]:
+            if not rules[j]["allowNone"]:
+                invalid_set.append(j)
+    return invalid_set
+
 
 def select_layers(layers, size, meta):
+    global rules
+
+    invalids = validate_rules()
+    print(invalids)
+    if invalids:
+        raise InvalidRuleSetError(f"Traits {invalids} are not allowed to be None")
+
+    # this helps us keep track of subtraits for subtrait level violation inspection and also skip pruned traits in selection loop
+    normalization = {i: i.sub_traits for i in layers}
+    pruned = {i: False for i in normalization}
     meta = meta
     image = Image.new("RGBA", size)
-    selected = [i.choose() for i in layers]
+
+    selected = []
+    for i in normalization:
+        if pruned[i]:
+            continue
+        # randomly choose trait
+        choice = i.choose(normalization[i])
+        print(choice.parent_trait)
+        # apply rules and prune violating traits from pool if trait is defined in config rules
+        if choice.parent_trait in rules:
+            copy = normalization.copy()
+            del copy[i]
+            for j in copy:
+                # prune main trait if need be
+                if j.name in rules[choice.parent_trait]["excludes"]:
+                    print("Pruned: ", j.name)
+                    pruned[j] = True
+                # prune violating subtraits
+                else:
+                    for k in normalization[j]:
+                        if k in rules[choice.parent_trait]["excludes"]:
+                            print("Pruned", k)
+                    normalization[j] = [k for k in normalization[j] if k not in rules[choice.parent_trait]["excludes"]]
+        selected.append(choice)
+
     for i in selected:
         meta[f"attributes[{i.origin_trait}]"] = i.name[: -4]
         # layer selected trait on top
@@ -198,8 +235,9 @@ def select_layers(layers, size, meta):
     return selected, image, meta
 
 
-
+rules = {}
 def generate_image(trait_config, size, quantity, dir_):
+    global rules
     # track unique images generated by keeping the layer order as id
     generated_images = set()
     # trait_category -> trait_type -> amount
@@ -210,7 +248,7 @@ def generate_image(trait_config, size, quantity, dir_):
     
     # Can we generate {quantity} unique images from n traits
     if not can_generate(traits, quantity):
-        raise AmountExceedsLimit("Amount of generation required has exceeded the total amount of possible combinations")
+        raise AmountExceedsLimit("Amount of generation required  has exceeded the total amount of possible combinations")
     
     # set up output folders   
     images, metadata = create_out(dir_)
@@ -232,7 +270,6 @@ def generate_image(trait_config, size, quantity, dir_):
     # Generate image, record metadata
     with open(metadata/"metadata.csv", "w", newline="") as image_meta:
         # blank canvas of same size as project
-
         writer = csv.DictWriter(image_meta, fieldnames=fields)
         writer.writeheader()
         while len(generated_images) < quantity:
@@ -242,11 +279,6 @@ def generate_image(trait_config, size, quantity, dir_):
 
             # construct image and check layer validity
             selected_layers, image, meta = select_layers(layers, size, data)
-            if not is_valid(selected_layers, rules):
-                print(Fore.RED, "Found conflict")
-                print(Style.RESET_ALL, [k.name for k in selected_layers])
-                continue
-
             # Prevent Image collision
             signature = (i.name for i in selected_layers)
             if signature in generated_images:
