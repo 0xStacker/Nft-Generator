@@ -65,9 +65,10 @@ class Trait:
             self.rules = config["rules"][self.name]
 
     # Select randomly from current trait exclude an array of subtraits if required
-    def choose(self, from_=None):
-        pool = [i for i in self.items if i.parent_trait in from_] if from_ else self.items
-        weights = [i.weight for i in self.items if i.parent_trait in from_] if from_ else [i.weight for i in self.items]
+    def choose(self, excluded=None):
+        print (f"Choosing from {self.name} excluding {excluded}")
+        pool = [i for i in self.items if i.parent_trait not in excluded] if excluded else self.items
+        weights = [i.weight for i in self.items if i.parent_trait not in excluded] if excluded else [i.weight for i in self.items]
         result = choices(pool, k=1, weights=weights)
         result = result[0]
         return result
@@ -156,7 +157,8 @@ def build_config(project):
     with open(f"./{dir_}/trait_config.json", "w") as file:
         json.dump(data, file, indent=4)
     print(Fore.CYAN,"Trait config built, Edit trait_config.json to set rarity details and trait rules")
-    input(f"Click enter to begin image generation")
+    print(Fore.YELLOW, "")
+    input("Click enter to begin image generation")
 
 
 # Prepare output directories
@@ -193,13 +195,14 @@ def select_layers(layers, size, meta):
     global rules
 
     invalids = validate_rules()
-    print(invalids)
     if invalids:
         raise InvalidRuleSetError(f"Traits {invalids} are not allowed to be None")
 
     # this helps us keep track of subtraits for subtrait level violation inspection and also skip pruned traits in selection loop
     normalization = {i: i.sub_traits for i in layers}
     pruned = {i: False for i in normalization}
+    # tracks subtraits of main traits that are not yet pruned from selection
+    excluded = {}
     meta = meta
     image = Image.new("RGBA", size)
 
@@ -208,23 +211,31 @@ def select_layers(layers, size, meta):
         if pruned[i]:
             continue
         # randomly choose trait
-        choice = i.choose(normalization[i])
-        print(choice.parent_trait)
+        if i.name in excluded:
+            choice = i.choose(excluded[i.name])
+        else:
+            choice = i.choose()
         # apply rules and prune violating traits from pool if trait is defined in config rules
         if choice.parent_trait in rules:
-            copy = normalization.copy()
-            del copy[i]
+            copy = [t for t in normalization if t.name != i.name]
+            
             for j in copy:
                 # prune main trait if need be
-                if j.name in rules[choice.parent_trait]["excludes"]:
-                    print("Pruned: ", j.name)
+                if j in rules[choice.parent_trait]["excludes"]:
                     pruned[j] = True
+                    # print (f"Selected {choice.parent_trait} pruned {j.name}")
                 # prune violating subtraits
                 else:
                     for k in normalization[j]:
                         if k in rules[choice.parent_trait]["excludes"]:
-                            print("Pruned", k)
-                    normalization[j] = [k for k in normalization[j] if k not in rules[choice.parent_trait]["excludes"]]
+                            # no subtrait of j had been initially pruned by esrlier traits
+                            if j not in excluded:
+                                excluded[j.name] = [k]
+                                # print (f"Selected {choice.parent_trait} excluded {k}")
+                            else:
+                                # print (f"Selected {choice.parent_trait} excluded {k}")
+                                excluded[j.name].append(k)
+                    # normalization[j] = [k for k in normalization[j] if k in rules[choice.parent_trait]["excludes"]]
         selected.append(choice)
 
     for i in selected:
@@ -262,7 +273,6 @@ def generate_image(trait_config, size, quantity, dir_):
     layers = []
     for t in traits["traits"]:
         trait_obj = Trait(t, root/dir_/t, traits)
-        #path = Path(f"./{dir_}/{t}")
         if t not in distribution:
             distribution[t] = {}
         layers.append(trait_obj)
